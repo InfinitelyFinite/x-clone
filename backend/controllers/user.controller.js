@@ -65,7 +65,7 @@ export const getSuggestedUsers = async(req, res) => {
     try {
         const userId = req.user._id;
         const usersFollowedByMe = await User.findById(userId).select("following");
-        // get 10 different users whose id is not equal to *my* userId
+        // get 10 different users whose id is not equal to current user's userId
         const users = await User.aggregate([
             {
                 $match:{
@@ -74,7 +74,7 @@ export const getSuggestedUsers = async(req, res) => {
             },
             {$sample: {size:10}}
         ])
-        // filter users i am already following
+        // filter users already followed by current user
         // CAN DO: filter users according to mutual followers and/or interests
         const filteredUsers = users.filter(user=>!usersFollowedByMe.following.includes(user._id))
         const suggestedUsers = filteredUsers.slice(0,4);
