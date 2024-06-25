@@ -1,10 +1,10 @@
 import express from "express";
-import authRoute from "./routes/auth.routes.js";
+import authRoute from "./routes/auth.route.js";
 import dotenv from "dotenv";
 import connectMongoDB from "./db/connectMongoDB.js";
 import cookieParser from "cookie-parser";
-import userRoute from "./routes/user.routes.js";
-import postRoute from "./routes/post.routes.js";
+import userRoute from "./routes/user.route.js";
+import postRoute from "./routes/post.route.js";
 import { v2 as cloudinary } from "cloudinary";
 
 const app = express();
