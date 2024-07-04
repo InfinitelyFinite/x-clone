@@ -87,24 +87,24 @@ export const likeUnlikePost = async(req, res) =>{
         const isLiked = post.likes.includes(userId);
         // if liked, unlike
         if(isLiked){
-            await Post.findByIdAndUpdate(postId, {$pull:{likes: userId}});
-            // can also use updateOne() method
-            await User.findByIdAndUpdate(userId, {$pull:{likedPosts: postId}});
-            res.status(200).json({message: "Post unliked successfully"});
+            await Post.updateOne({_id: postId}, {$pull:{likes: userId}});
+            await User.updateOne({_id: userId}, {$pull:{likedPosts: postId}});
+            const updatedLikes = post.likes.filter((id)=> id.toString() !==userId.toString());
+
+            res.status(200).json(updatedLikes);
         } else{
             // if not liked, like and send notification
-            await Post.findByIdAndUpdate(postId, {$push:{likes: userId}});
-            // can also do:
-            // post.likes.push(userId);
-            // await post.save();
-            await User.findByIdAndUpdate(userId, {$push:{likedPosts: postId}});
+            post.likes.push(userId);
+            await User.updateOne({_id: userId}, {$push:{likedPosts: postId}});
+            await post.save();
             const newNotification = new Notification({
                 type: "like",
                 from: userId,
                 to: post.user,
             });
             await newNotification.save();
-            res.status(200).json({message: "Post liked successfully"});
+            const updatedLikes = post.likes;
+            res.status(200).json(updatedLikes);
         }
         
     } catch (error) {
