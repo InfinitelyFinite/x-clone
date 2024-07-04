@@ -20,7 +20,8 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 // middleware for parsing req.body
-app.use(express.json());
+app.use(express.json({limit: "5mb"}));
+// limit shouldn't be too large to prevent Denial of Service attack
 app.use(express.urlencoded({extended: true})); // to parse form data(urlencoded)
 app.use(cookieParser());
 
