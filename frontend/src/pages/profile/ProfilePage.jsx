@@ -5,16 +5,15 @@ import Posts from "../../components/common/Posts";
 import ProfileHeaderSkeleton from "../../components/skeletons/ProfileHeaderSkeleton";
 import EditProfileModal from "./EditProfileModal";
 
-import { POSTS } from "../../utils/db/dummy";
 
 import { FaArrowLeft } from "react-icons/fa6";
 import { IoCalendarOutline } from "react-icons/io5";
 import { FaLink } from "react-icons/fa";
 import { MdEdit } from "react-icons/md";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { formatMemberSinceDate } from "../../utils/date";
 import useFollow from "../../hooks/useFollow";
-import toast from "react-hot-toast";
+import useUpdateUserProfile from "../../hooks/useUpdateUserProfile";
 
 const ProfilePage = () => {
 	const [coverImg, setCoverImg] = useState(null);
@@ -25,10 +24,9 @@ const ProfilePage = () => {
 	const profileImgRef = useRef(null);
 	const {username} = useParams();
 	const {follow, isPending} = useFollow();
-	const queryClient = useQueryClient();
 	
 	const {data: authUser} = useQuery({queryKey: ["authUser"]});
-
+	const {data: posts} = useQuery({queryKey: ["posts"]});
 	const {data: user, isLoading, refetch, isRefetching} = useQuery({
 		queryKey: ["userProfile"],
 		queryFn: async () => {
@@ -43,40 +41,8 @@ const ProfilePage = () => {
 		}
 	});
 
-	const {mutate: updateProfile, isPending: isUpdatingProfile} = useMutation({
-		mutationFn: async () => {
-			try {
-				const res = await fetch(`/api/users/update`, {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({
-						coverImg,
-						profileImg
-					}),
-
-				})
-				const data = res.json();
-				if(!res.ok) throw new Error(data.error || "Something went wrong");
-				return data;
-			} catch (error) {
-				throw new Error(error);
-			}
-		},
-		onSuccess: () => {
-			toast.success("Profile updated successfully");
-			Promise.all([
-				queryClient.invalidateQueries({ queryKey: ["authUser"] }),
-				queryClient.invalidateQueries({ queryKey: ["userProfile"] })
-			])
-			setProfileImg(null);
-			setCoverImg(null);
-		},
-		onError: (error) => {
-			toast.error(error);
-		}
-	}) 
+	const {updateProfile, isUpdatingProfile} = useUpdateUserProfile();
+	const userPosts = posts?.filter(post => post?.user?._id === user?._id);
 
 	const isMyProfile = authUser._id === user?._id;
 	const memberSinceDate = formatMemberSinceDate(user?.createdAt);
@@ -110,7 +76,7 @@ const ProfilePage = () => {
 								</Link>
 								<div className='flex flex-col'>
 									<p className='font-bold text-lg'>{user?.fullName}</p>
-									<span className='text-sm text-slate-500'>{POSTS?.length} posts</span>
+									<span className='text-sm text-slate-500'>{userPosts?.length} posts</span>
 								</div>
 							</div>
 							{/* COVER IMG */}
@@ -173,7 +139,11 @@ const ProfilePage = () => {
 								{(coverImg || profileImg) && (
 									<button
 										className='btn btn-primary rounded-full btn-sm text-white px-4 ml-2'
-										onClick={() => updateProfile()}
+										onClick={async () => {
+											await updateProfile({profileImg, coverImg});
+											setProfileImg(null);
+											setCoverImg(null);
+										}}
 									>
 										{isUpdatingProfile? "Updating...": "Update"}
 									</button>
