@@ -12,12 +12,7 @@ import { Error } from "mongoose";
 import { formatPostDate } from "../../utils/date";
 
 const Post = ({ post }) => {
-	const postOwner = post.user;
 	
-	const isLiked = post.likes.includes(authUser._id);
-	const isMyPost = authUser._id === postOwner._id;
-
-	const formattedDate = formatPostDate(post.createdAt);
 	const [comment, setComment] = useState("");
 	const {data: authUser} = useQuery({queryKey: ["authUser"]});
 	const queryClient = useQueryClient();
@@ -121,7 +116,12 @@ const Post = ({ post }) => {
 		if(isLiking) return
 		likePost();
 	};
+	const postOwner = post.user;
+	
+	const isLiked = post.likes.includes(authUser._id);
+	const isMyPost = authUser._id === postOwner._id;
 
+	const formattedDate = formatPostDate(post.createdAt);
 	return (
 		<>
 			<div className='flex gap-2 items-start p-4 border-b border-gray-700'>
