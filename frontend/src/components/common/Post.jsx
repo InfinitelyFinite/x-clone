@@ -83,21 +83,29 @@ const Post = ({ post }) => {
 					},
 					body: JSON.stringify({text: comment}),
 				})
-				const data = res.json();
+				const data = await res.json();
 				if(!res.ok){
 					throw new Error(data.error || "Something went wrong");
 				}
-				return data;
+				return data.comments;
 			} catch (error) {
 				throw new Error(error);
 			}
 		},
-		onSuccess: ()=>{
+		onSuccess: (updatedComments)=>{
 			toast.success("Comment posted successfully");
+			queryClient.setQueryData(["posts"], (oldData)=>{
+				return oldData.map((p)=>{
+					if(p._id === post._id){
+						return {...p, comments: updatedComments};
+					}
+					return p;
+				});
+			});
 			setComment("");
-			queryClient.invalidateQueries({queryKey: ["posts"]});
+			// queryClient.invalidateQueries({queryKey: ["posts"]});
 		},
-		onError: ()=>{
+		onError: (error)=>{
 			toast.error(error.message);
 		}
 	})
