@@ -24,7 +24,7 @@ This project is a Twitter clone built using the MERN stack.
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/your-username/twitter-clone.git
+    git clone https://github.com/InfinitelyFinite/x-clone.git
     cd twitter-clone
     ```
 
